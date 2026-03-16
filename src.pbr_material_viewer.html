@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PBR Material Viewer</title>
+<link href="/css/home" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <div id="header">
+    <h1>PBR<span>.</span>Viewer</h1>
+    <div class="header-tag">WebGL2</div>
+    <div class="header-sep"></div>
+    <div class="header-stat">VERT <span id="stat-verts">—</span></div>
+    <div class="header-stat">TRI <span id="stat-tris">—</span></div>
+    <div class="header-stat">DRAW <span id="stat-draws">1</span></div>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+    <div class="panel-section">
+      <div class="panel-section-header">Geometry</div>
+      <div class="panel-section-body">
+        <div class="mesh-grid">
+          <button class="mesh-btn active" onclick="setMesh('sphere')">Sphere</button>
+          <button class="mesh-btn" onclick="setMesh('cube')">Cube</button>
+          <button class="mesh-btn" onclick="setMesh('torus')">Torus</button>
+          <button class="mesh-btn" onclick="setMesh('cylinder')">Cylinder</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Material Presets</div>
+      <div class="panel-section-body">
+        <div class="preset-grid">
+          <button class="preset-btn active" onclick="applyPreset('gold')"><span class="preset-dot" style="background:#ffd700"></span>Gold</button>
+          <button class="preset-btn" onclick="applyPreset('silver')"><span class="preset-dot" style="background:#c0c0c0"></span>Silver</button>
+          <button class="preset-btn" onclick="applyPreset('copper')"><span class="preset-dot" style="background:#b87333"></span>Copper</button>
+          <button class="preset-btn" onclick="applyPreset('iron')"><span class="preset-dot" style="background:#8a8a8a"></span>Iron</button>
+          <button class="preset-btn" onclick="applyPreset('plastic')"><span class="preset-dot" style="background:#2244cc"></span>Plastic</button>
+          <button class="preset-btn" onclick="applyPreset('rubber')"><span class="preset-dot" style="background:#222222"></span>Rubber</button>
+          <button class="preset-btn" onclick="applyPreset('obsidian')"><span class="preset-dot" style="background:#1a1a2e"></span>Obsidian</button>
+          <button class="preset-btn" onclick="applyPreset('jade')"><span class="preset-dot" style="background:#4aa96c"></span>Jade</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Albedo</div>
+      <div class="panel-section-body">
+        <div class="color-row">
+          <input type="color" id="albedo-color" value="#ffd700" oninput="updateAlbedo(this.value)">
+          <span>Base Color</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">PBR Parameters</div>
+      <div class="panel-section-body">
+        <div class="param-row">
+          <div class="param-label">METALLIC <span id="val-metallic">1.00</span></div>
+          <input type="range" id="sl-metallic" min="0" max="1" step="0.01" value="1.0" oninput="updateParam('metallic',this.value)">
+        </div>
+        <div class="param-row">
+          <div class="param-label">ROUGHNESS <span id="val-roughness">0.20</span></div>
+          <input type="range" id="sl-roughness" min="0.02" max="1" step="0.01" value="0.2" oninput="updateParam('roughness',this.value)">
+        </div>
+        <div class="param-row">
+          <div class="param-label">AO <span id="val-ao">1.00</span></div>
+          <input type="range" id="sl-ao" min="0" max="1" step="0.01" value="1.0" oninput="updateParam('ao',this.value)">
+        </div>
+        <div class="param-row">
+          <div class="param-label">EMISSIVE <span id="val-emissive">0.00</span></div>
+          <input type="range" id="sl-emissive" min="0" max="5" step="0.01" value="0.0" oninput="updateParam('emissive',this.value)">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Parallax Mapping</div>
+      <div class="panel-section-body">
+        <div class="toggle-row">
+          <span>Enabled (POM)</span>
+          <label class="toggle">
+            <input type="checkbox" id="tog-parallax" checked onchange="toggleParallax(this.checked)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span>Self-Shadow</span>
+          <label class="toggle">
+            <input type="checkbox" id="tog-pshad" checked onchange="toggleParallaxShadow(this.checked)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="param-row" style="margin-top:4px">
+          <div class="param-label">DEPTH SCALE <span id="val-pscale">0.060</span></div>
+          <input type="range" id="sl-pscale" min="0" max="0.2" step="0.001" value="0.06" oninput="updateParallaxScale(this.value)">
+        </div>
+        <div class="param-row">
+          <div class="param-label">QUALITY (STEPS) <span id="val-psteps">32</span></div>
+          <input type="range" id="sl-psteps" min="4" max="64" step="2" value="32" oninput="updateParallaxSteps(this.value)">
+        </div>
+        <div style="font-size:9px;color:var(--muted);letter-spacing:0.1em;margin-top:2px">HEIGHT PATTERN</div>
+        <div class="preset-grid">
+          <button class="hmap-btn preset-btn active" data-pattern="bricks" onclick="setHeightPattern('bricks')">Bricks</button>
+          <button class="hmap-btn preset-btn" data-pattern="tiles" onclick="setHeightPattern('tiles')">Tiles</button>
+          <button class="hmap-btn preset-btn" data-pattern="cobble" onclick="setHeightPattern('cobble')">Cobble</button>
+          <button class="hmap-btn preset-btn" data-pattern="waves" onclick="setHeightPattern('waves')">Waves</button>
+          <button class="hmap-btn preset-btn" data-pattern="scratches" onclick="setHeightPattern('scratches')">Scratches</button>
+          <button class="hmap-btn preset-btn" data-pattern="noise" onclick="setHeightPattern('noise')">Noise</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEWPORT -->
+  <div id="viewport">
+    <canvas id="glcanvas"></canvas>
+    <div id="overlay-info">
+      LMB · Orbit &nbsp;|&nbsp; RMB · Pan &nbsp;|&nbsp; Scroll · Zoom
+    </div>
+    <div id="fps-counter">— FPS</div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right-panel">
+    <div class="panel-section">
+      <div class="panel-section-header">Environment</div>
+      <div class="panel-section-body">
+        <button class="light-btn active" onclick="setEnv('studio')">◈ Studio</button>
+        <button class="light-btn" onclick="setEnv('sunset')">◈ Sunset</button>
+        <button class="light-btn" onclick="setEnv('overcast')">◈ Overcast</button>
+        <button class="light-btn" onclick="setEnv('night')">◈ Night</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Light A</div>
+      <div class="panel-section-body">
+        <div class="param-row">
+          <div class="param-label">INTENSITY <span id="val-light0">3.00</span></div>
+          <input type="range" id="sl-light0" min="0" max="10" step="0.1" value="3.0" oninput="updateLight(0,'intensity',this.value)">
+        </div>
+        <div class="color-row">
+          <input type="color" id="lc0" value="#ffffff" oninput="updateLight(0,'color',this.value)">
+          <span>Color</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Light B</div>
+      <div class="panel-section-body">
+        <div class="param-row">
+          <div class="param-label">INTENSITY <span id="val-light1">1.50</span></div>
+          <input type="range" id="sl-light1" min="0" max="10" step="0.1" value="1.5" oninput="updateLight(1,'intensity',this.value)">
+        </div>
+        <div class="color-row">
+          <input type="color" id="lc1" value="#88aaff" oninput="updateLight(1,'color',this.value)">
+          <span>Color</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Light C</div>
+      <div class="panel-section-body">
+        <div class="param-row">
+          <div class="param-label">INTENSITY <span id="val-light2">0.80</span></div>
+          <input type="range" id="sl-light2" min="0" max="10" step="0.1" value="0.8" oninput="updateLight(2,'intensity',this.value)">
+        </div>
+        <div class="color-row">
+          <input type="color" id="lc2" value="#ff8844" oninput="updateLight(2,'color',this.value)">
+          <span>Color</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Post Process</div>
+      <div class="panel-section-body">
+        <div class="toggle-row">
+          <span>Tone Map (ACES)</span>
+          <label class="toggle">
+            <input type="checkbox" id="tog-tonemap" checked onchange="toggleTonemap(this.checked)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span>Gamma Correct</span>
+          <label class="toggle">
+            <input type="checkbox" id="tog-gamma" checked onchange="toggleGamma(this.checked)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="param-row" style="margin-top:4px">
+          <div class="param-label">EXPOSURE <span id="val-exposure">1.00</span></div>
+          <input type="range" id="sl-exposure" min="0.1" max="5" step="0.05" value="1.0" oninput="updateExposure(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Debug View</div>
+      <div class="panel-section-body">
+        <div class="channel-grid">
+          <button class="channel-btn active" onclick="setChannel(0)">Full</button>
+          <button class="channel-btn" onclick="setChannel(1)">Albedo</button>
+          <button class="channel-btn" onclick="setChannel(2)">Normal</button>
+          <button class="channel-btn" onclick="setChannel(3)">Metal</button>
+          <button class="channel-btn" onclick="setChannel(4)">Rough</button>
+          <button class="channel-btn" onclick="setChannel(5)">AO</button>
+          <button class="channel-btn" onclick="setChannel(6)" style="grid-column:1/-1">Height</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-header">Animation</div>
+      <div class="panel-section-body">
+        <div class="toggle-row">
+          <span>Auto Rotate</span>
+          <label class="toggle">
+            <input type="checkbox" id="tog-rotate" checked onchange="toggleRotate(this.checked)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="param-row" style="margin-top:4px">
+          <div class="param-label">SPEED <span id="val-rotspeed">0.40</span></div>
+          <input type="range" id="sl-rotspeed" min="0.01" max="2" step="0.01" value="0.4" oninput="updateRotSpeed(this.value)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="statusbar">
+    <span id="sb-mesh">SPHERE · 64×64</span>
+    <span id="sb-preset">GOLD PRESET</span>
+    <div style="flex:1"></div>
+    <span id="sb-env">STUDIO ENV</span>
+    <span id="sb-channel">FULL PBR</span>
+  </div>
+</div>
+<script src="/js/home" ></script>
+</body>
+</html>
+
+
+
